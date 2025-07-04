@@ -1,135 +1,122 @@
-
-# a function to create a new user
-
 def createAccount():
-    
-    with open('data.txt','a') as f:
-        accountNumber = input("Enter the account account number: ")
+    with open('data.txt', 'a') as f:
+        accountNumber = input("Enter the account number: ")
         userName = input("Enter a username: ")
         secretkey = input("Enter a password: ")
         secretkey1 = input("Reenter the password: ")
-        
-        if secretkey != secretkey1:
-            print ("the password aren't same")
-            return createAccount()
-        
-        balance = input("Deposit some initial amoumt: ")
-        
+
+        while secretkey != secretkey1:
+            print("The passwords don't match. Try again.")
+            secretkey = input("Enter a password: ")
+            secretkey1 = input("Reenter the password: ")
+
+        balance = input("Deposit some initial amount: ")
         f.write(f'{accountNumber},{userName},{secretkey},{balance}\n')
         print("Account created successfully")
 
-#a function to impliment the cheaking of the password
-def security(key): 
-    with open("data.txt","r") as f:
-        for lines in f:
-            accountNumber, userName, secretkey, balance = lines.strip().split(',')
+
+def security(key):
+    with open("data.txt", "r") as f:
+        for line in f:
+            accountNumber, userName, secretkey, balance = line.strip().split(',')
             if key == secretkey:
-
-                return[accountNumber,userName,secretkey,float(balance)]
-            
-            else:
-                print("The password is incorrect")
+                return [accountNumber, userName, secretkey, float(balance)]
+    print("The password is incorrect")
+    return None
 
 
-#funtion to cheak the validity of the account
 def viewAccount(accno):
-        with open("data.txt",'r') as f:
-            for lines in f:
-                accountNumber, userName, secretkey, balance = lines.strip().split(',')
-                if accno == accountNumber:
-
-                    return[accountNumber,userName,float(balance)]
-                
-                else:
-                    print("The account number is nor valid")
+    with open("data.txt", 'r') as f:
+        for line in f:
+            accountNumber, userName, secretkey, balance = line.strip().split(',')
+            if accno == accountNumber:
+                return [accountNumber, userName, secretkey, float(balance)]
+    print("The account number is not valid")
+    return None
 
 
-# create a function to update the data in case of any actions
- 
 def updateAccount(accno, newBalance):
     lines = []
     with open('data.txt', 'r') as f:
         for line in f:
             accountNumber, userName, secretkey, amount = line.strip().split(',')
             if accno == accountNumber:
-
-                lines.append(f'{accountNumber},{userName},{secretkey},{newBalance}')
+                lines.append(f'{accountNumber},{userName},{secretkey},{newBalance}\n')
             else:
-                lines.append(lines)
+                lines.append(line)
 
-    with open('data.txt','w') as f:
-            f.writelines(lines)
+    with open('data.txt', 'w') as f:
+        f.writelines(lines)
 
-    
+
 def deposit():
-    
     accno = input('Enter the account number: ')
     key = input('Enter your password: ')
-    accountNumber = viewAccount(accno)
-    secretkey = security(key)
-    if accountNumber and secretkey:
-        amount =float(input("Enter  the amount: "))
-        updateAccount(accno, accountNumber[2] + amount)
+    account = viewAccount(accno)
+    auth = security(key)
+
+    if account and auth and account[2] == key:
+        amount = float(input("Enter the amount to deposit: "))
+        updateAccount(accno, account[3] + amount)
         print("Deposit successful")
     else:
-        print("The Account not found")
+        print("Account not found or password incorrect.")
 
-def widthraw():
-    accno = input("enter the account number: ")
+
+def withdraw():
+    accno = input("Enter the account number: ")
     key = input('Enter your password: ')
-    accountNumber = viewAccount(accno)
-    secretkey = security(key)
-    if accountNumber and secretkey:
+    account = viewAccount(accno)
+    auth = security(key)
 
-        amount = float(input ("enter the amount to widthraw: "))
-        if accountNumber[2] <= 0:
-            print ('Top up to your account to make a withdraw action')
+    if account and auth and account[2] == key:
+        amount = float(input("Enter the amount to withdraw: "))
+        if account[3] <= 0:
+            print('Top up your account to make a withdrawal.')
+        elif account[3] >= amount:
+            updateAccount(accno, account[3] - amount)
+            print("Withdrawal successful")
         else:
-            return accountNumber[2]
-
-        if accountNumber[2] >= amount:
-            
-            updateAccount(accno, accountNumber[2] - amount )
-
-        else:
-
-            print("The amount is unsufusient please topup to you account")
-
+            print("Insufficient funds. Please top up your account.")
     else:
-        print ("this account does not exist")
-        print ("Try creating a new account")
+        print("Account not found or password incorrect.")
+
 
 def check():
-    accno = input("Enter the your account number: ")
-    key = input("Enter you password: ")
-    accountNumber = viewAccount(accno)
-    secretkey = security(key)
-    
+    accno = input("Enter your account number: ")
+    key = input("Enter your password: ")
+    account = viewAccount(accno)
+    auth = security(key)
 
-    with open ("data.txt", "r") as f:
-        for lines in f:
-            accountNumber, userName, secretkey, balance = lines.strip().split(",")
-            if accno == accountNumber and key == secretkey:         
+    if account and auth and account[2] == key:
+        print(f"Account Number: {account[0]}")
+        print(f"Username: {account[1]}")
+        print(f"Balance: {account[3]}")
+    else:
+        print("Account not found or password incorrect.")
 
-                print(f"Here is your account details {accountNumber},{userName},{balance}")
-            else:
-               
-               print("Either the account number or password isn't recognized")
 
+# === MAIN MENU LOOP ===
 while True:
-    print ("Enter the ultimate choice")
-    options = ('1.deposit','2. widthraw','3. createAccount','4. cheakAccount','5. exit')
-    print(options)
-    userInput  = input(f"Enter (1,2,3,4,5) : ")  
- 
+    print("\n=== Menu ===")
+    print("1. Deposit")
+    print("2. Withdraw")
+    print("3. Create Account")
+    print("4. View Account")
+    print("5. Exit")
+
+    userInput = input("Enter your choice (1-5): ")
+
     if userInput == '1':
         deposit()
     elif userInput == '2':
-        widthraw()
+        withdraw()
     elif userInput == '3':
         createAccount()
     elif userInput == '4':
         check()
-    elif userInput == '5': 
+    elif userInput == '5':
+        print("Goodbye!")
         break
-    else : print("hello ther this seams to be an error")
+    else:
+        print("Invalid choice. Please try again.")
